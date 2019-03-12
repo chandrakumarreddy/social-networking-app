@@ -1,15 +1,19 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const bcrypt = require("bcrypt");
+const mongoose = require("mongoose"),
+	Schema = mongoose.Schema,
+	bcrypt = require("bcrypt");
 
 const userSchema = new Schema({
+	_id: {
+		type: Schema.Types.ObjectId
+	},
 	username: {
 		type: String,
 		required: true
 	},
 	email: {
 		type: String,
-		required: true
+		required: true,
+		unique: true
 	},
 	password: {
 		type: String,
@@ -23,15 +27,18 @@ const userSchema = new Schema({
 		default: Date.now
 	}
 });
+
 userSchema.pre("save", function(next) {
+	let user = this;
 	if (!user.isModified("password")) return next();
 	bcrypt.genSalt(10, function(err, salt) {
 		if (err) return next(err);
-		bcrypt.hash(myPlaintextPassword, salt, function(err, hash) {
+		bcrypt.hash(user.password, salt, function(err, hash) {
 			if (err) return next(err);
 			user.password = hash;
 			next();
 		});
 	});
 });
+
 module.exports = mongoose.model("User", userSchema);
